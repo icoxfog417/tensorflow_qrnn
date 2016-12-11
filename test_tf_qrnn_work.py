@@ -14,7 +14,7 @@ class TestQRNNWork(unittest.TestCase):
         with tf.Graph().as_default() as qrnn:
             self.check_by_digits(qrnn=5)
 
-    def xtest_baseline(self):
+    def test_baseline(self):
         print("Baseline Working check")
         with tf.Graph().as_default() as baseline:
             self.check_by_digits()
