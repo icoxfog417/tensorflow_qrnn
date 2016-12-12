@@ -36,22 +36,23 @@ class QRNN():
         return self.h
 
     def forward(self, x):
-        # x is batch_size x sentence_length x word_length
-        shape = [int(d) for d in x.get_shape()]
-        _x = tf.transpose(x, [1, 0, 2])  # sentence_length x batch_size x word_length
-        _x = tf.reshape(_x, [-1, self.kernel.in_size])  # (sentence_length x batch_size) x word length
-        word_seq = tf.split(0, shape[1], _x)  # make list of sentence_length tensors of shape batch_size x word length
 
-        for i, _t in enumerate(word_seq):
-            # _t is batch_size x word_length matrix
-            if self.conv_size <= 2:
-                f, z, o = self.kernel.forward(_t)
-            else:
-                content_length = i + 1
-                masked = tf.pad(x[:, :content_length, :], [[0, 0], [0, shape[1] - content_length], [0, 0]])
-                f, z, o = self.kernel.conv(masked)
+        length = lambda mx: int(mx.get_shape()[0])
 
-            self._step(f, z, o)
+        if self.conv_size <= 2:
+            # x is batch_size x sentence_length x word_length
+            # -> now, transpose it to sentence_length x batch_size x word_length
+            _x = tf.transpose(x, [1, 0, 2])
+
+            for i in range(length(_x)):
+                t = _x[i] # t is batch_size x word_length matrix
+                f, z, o = self.kernel.forward(t)
+                self._step(f, z, o)
+        else:
+            c_f, c_z, c_o = self.kernel.conv(x)
+            for i in range(length(c_f)):
+                f, z, o = c_f[i], c_z[i], c_o[i]
+                self._step(f, z, o)
         
         return self.h
 
@@ -127,6 +128,6 @@ class QRNNConvolution():
         _weighted = tf.nn.conv1d(x, self.conv_filter, stride=1, padding="SAME", data_format="NHWC")
 
         # _weighted is batch_size x conved_size x output_channel
-        _weighted = tf.reshape(_weighted[:, -1, :], [-1, self._weight_size])  # take last sequence value
-        f, z, o = tf.split(1, 3, _weighted)  # split to f, z, o. each matrix is batch_size x size
-        return f, z, o
+        _w = tf.transpose(_weighted, [1, 0, 2])  # conved_size x  batch_size x output_channel
+        _ws = tf.split(2, 3, _w) # make 3(f, z, o) conved_size x  batch_size x size
+        return _ws

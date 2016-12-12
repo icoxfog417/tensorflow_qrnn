@@ -17,9 +17,14 @@ class TestQRNNWork(unittest.TestCase):
     def test_baseline(self):
         print("Baseline Working check")
         with tf.Graph().as_default() as baseline:
-            self.check_by_digits()
+            self.check_by_digits(baseline=True)
 
-    def check_by_digits(self, qrnn=-1):
+    def test_random(self):
+        print("Random Working check")
+        with tf.Graph().as_default() as random:
+            self.check_by_digits(random=True)
+
+    def check_by_digits(self, qrnn=-1, baseline=False, random=False):
         digits = load_digits()
         horizon, vertical, n_class = (8, 8, 10)  # 8 x 8 image, 0~9 number(=10 class)
         size = 128  # state vector size
@@ -33,8 +38,10 @@ class TestQRNNWork(unittest.TestCase):
         y = tf.placeholder(tf.float32, [batch_size, n_class])
         if qrnn > 0:
             pred = self.qrnn_forward(X, size, n_class, batch_size, conv_size=qrnn)
-        else:
+        elif baseline:
             pred = self.baseline_forward(X, size, n_class)
+        else:
+            pred = self.random_forward(X, size, n_class)            
 
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
         optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
@@ -59,9 +66,9 @@ class TestQRNNWork(unittest.TestCase):
     
     def baseline_forward(self, X, size, n_class):
         shape = X.get_shape()
-        _X = tf.transpose(X, [1, 0, 2])
-        _X = tf.reshape(_X, [-1, int(shape[2])])
-        seq = tf.split(0, int(shape[1]), _X)
+        _X = tf.transpose(X, [1, 0, 2])  # batch_size x sentence_length x word_length -> batch_size x sentence_length x word_length
+        _X = tf.reshape(_X, [-1, int(shape[2])])  # (batch_size x sentence_length) x word_length
+        seq = tf.split(0, int(shape[1]), _X)  # sentence_length x (batch_size x word_length)
 
         lstm_cell = rnn_cell.BasicLSTMCell(size, forget_bias=1.0)
         outputs, states = rnn.rnn(lstm_cell, seq, dtype=tf.float32)
@@ -69,6 +76,16 @@ class TestQRNNWork(unittest.TestCase):
             W = tf.Variable(tf.random_normal([size, n_class]))
             b = tf.Variable(tf.random_normal([n_class]))
         output = tf.matmul(outputs[-1], W) + b
+        return output
+
+    def random_forward(self, X, size, n_class):
+        batch_size = int(X.get_shape()[0])
+        rand_vector = tf.random_normal([batch_size, size])  # batch_size x size random vector
+
+        with tf.name_scope("random_check"):
+            W = tf.Variable(tf.random_normal([size, n_class]))
+            b = tf.Variable(tf.random_normal([n_class]))
+        output = tf.matmul(rand_vector, W) + b
         return output
 
     def qrnn_forward(self, X, size, n_class, batch_size, conv_size):
