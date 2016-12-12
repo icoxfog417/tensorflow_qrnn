@@ -31,6 +31,15 @@ Dataset is [scikit-learn's digit dataset](http://scikit-learn.org/stable/auto_ex
 python test_tf_qrnn_work.py
 ```
 
+You can check the calculation result by [TensorBoard](https://www.tensorflow.org/versions/r0.12/how_tos/summaries_and_tensorboard/index.html).
+
+![tensorboard.PNG](tensorboard.PNG)
+
+For example.
+
+```
+tensorboard --logdir=./summary/qrnn
+```
 
 ## Experiments
 
