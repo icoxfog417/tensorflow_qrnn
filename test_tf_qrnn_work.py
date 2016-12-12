@@ -1,4 +1,6 @@
 import unittest
+import time
+import functools
 import numpy as np
 from sklearn.datasets import load_digits
 from sklearn.metrics import accuracy_score
@@ -7,18 +9,31 @@ from tensorflow.python.ops import rnn, rnn_cell
 from tf_qrnn import QRNN
 
 
+def measure_time(func):
+    @functools.wraps(func)
+    def _measure_time(*args, **kwargs):
+        start = time.time()
+        func(*args, **kwargs)
+        elapse = time.time() - start
+        print("takes {} seconds.".format(elapse))
+    return _measure_time
+
+
 class TestQRNNWork(unittest.TestCase):
 
+    @measure_time
     def test_qrnn(self):
         print("QRNN Working check")
         with tf.Graph().as_default() as qrnn:
             self.check_by_digits(qrnn=5)
 
+    @measure_time
     def test_baseline(self):
-        print("Baseline Working check")
+        print("Baseline(LSTM) Working check")
         with tf.Graph().as_default() as baseline:
             self.check_by_digits(baseline=True)
 
+    @measure_time
     def test_random(self):
         print("Random Working check")
         with tf.Graph().as_default() as random:
@@ -57,8 +72,7 @@ class TestQRNNWork(unittest.TestCase):
                 sess.run(optimizer, feed_dict={X: _X, y: _y})
 
                 if i % 100 == 0:
-                    loss = sess.run(cost, feed_dict={X: _X, y: _y})
-                    acc = sess.run(accuracy, feed_dict={X: _X, y: _y})
+                    loss, acc = sess.run([cost, accuracy], feed_dict={X: _X, y: _y})
                     print("Iter {}: loss={}, accuracy={}".format(i, loss, acc))
             
             acc = sess.run(accuracy, feed_dict={X: images[-batch_size:], y: target[-batch_size:]})
