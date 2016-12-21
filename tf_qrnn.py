@@ -16,18 +16,14 @@ class QRNN():
             self.kernel = QRNNWithPrevious(in_size, size)
         else:
             self.kernel = QRNNConvolution(in_size, size, conv_size)
-    
+
     def initialize(self, batch_size):
         self.batch_size = batch_size
-        with tf.variable_scope("QRNN/Variable"):
-            self.c = tf.get_variable("c", [self.batch_size, self.kernel.size], initializer=tf.constant_initializer(0))
         self.kernel.initialize(self.batch_size)
 
     def _step(self, f, z, o):
         with tf.variable_scope("fo-Pool"):
             # f,z,o is batch_size x size
-            if self.c is None:
-                raise Exception("You have to initialize QRNN by batch size.")
             f = tf.sigmoid(f)
             z = tf.tanh(z)
             o = tf.sigmoid(o)
@@ -38,6 +34,9 @@ class QRNN():
 
     def forward(self, x):
         length = lambda mx: int(mx.get_shape()[0])
+
+        # init cell. tf.shape(x)[0] is batch size.
+        self.c = tf.zeros([tf.shape(x)[0], self.kernel.size], dtype=tf.float32)
 
         with tf.variable_scope("QRNN/Forward"):
             if self.conv_size <= 2:
@@ -54,7 +53,7 @@ class QRNN():
                 for i in range(length(c_f)):
                     f, z, o = c_f[i], c_z[i], c_o[i]
                     self._step(f, z, o)
-        
+
         return self.h
 
 
@@ -68,7 +67,7 @@ class QRNNLinear():
             initializer = tf.random_normal_initializer()
             self.W = tf.get_variable("W", [self.in_size, self._weight_size], initializer=initializer)
             self.b = tf.get_variable("b", [self._weight_size], initializer=initializer)
-    
+
     def initialize(self, batch_size):
         pass
 
@@ -76,7 +75,7 @@ class QRNNLinear():
         # x is batch_size x word_length matrix
         _weighted = tf.matmul(t, self.W)
         _weighted = tf.add(_weighted, self.b)
-        
+
         # now, _weighted is batch_size x weight_size
         f, z, o = tf.split(1, 3, _weighted)  # split to f, z, o. each matrix is batch_size x size
         return f, z, o
@@ -93,7 +92,7 @@ class QRNNWithPrevious():
             self.W = tf.get_variable("W", [self.in_size, self._weight_size], initializer=initializer)
             self.V = tf.get_variable("V", [self.in_size, self._weight_size], initializer=initializer)
             self.b = tf.get_variable("b", [self._weight_size], initializer=initializer)
-    
+
     def initialize(self, batch_size):
         with tf.variable_scope("QRNN/Variable/WithPrevious"):
             self._previous = tf.get_variable("previous", [batch_size, self.in_size], initializer=tf.random_normal_initializer())
@@ -120,7 +119,7 @@ class QRNNConvolution():
         with tf.variable_scope("QRNN/Variable/Convolution"):
             initializer = tf.random_normal_initializer()
             self.conv_filter = tf.get_variable("conv_filter", [conv_size, in_size, self._weight_size], initializer=initializer)
-    
+
     def initialize(self, batch_size):
         pass
 
