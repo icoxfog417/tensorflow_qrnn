@@ -32,8 +32,9 @@ class QRNN():
         length = lambda mx: int(mx.get_shape()[0])
 
         with tf.variable_scope("QRNN/Forward"):
-            # init context cell
-            self.c = tf.zeros([length(x), self.kernel.size], dtype=tf.float32)
+            if self.c is None:
+                # init context cell
+                self.c = tf.zeros([length(x), self.kernel.size], dtype=tf.float32)
 
             if self.conv_size <= 2:
                 # x is batch_size x sentence_length x word_length

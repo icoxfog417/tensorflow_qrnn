@@ -4,7 +4,7 @@ QRNN implementation for TensorFlow. Implementation refer to below blog.
 
 [New neural network building block allows faster and more accurate text understanding](http://metamind.io/research/new-neural-network-building-block-allows-faster-and-more-accurate-text-understanding/)
 
-![qrnn.PNG](./qrnn.PNG)
+![qrnn.PNG](./pictures/qrnn.PNG)
 
 ## Dependencies
 
@@ -33,7 +33,7 @@ python test_tf_qrnn_work.py
 
 You can check the calculation result by [TensorBoard](https://www.tensorflow.org/versions/r0.12/how_tos/summaries_and_tensorboard/index.html).
 
-![tensorboard.PNG](tensorboard.PNG)
+![tensorboard.PNG](./pictures/tensorboard.PNG)
 
 For example.
 
