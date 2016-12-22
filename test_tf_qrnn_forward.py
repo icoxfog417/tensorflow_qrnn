@@ -15,7 +15,6 @@ class TestQRNNForward(unittest.TestCase):
 
         with tf.Graph().as_default() as q_linear:
             qrnn = QRNN(in_size=word_size, size=size, conv_size=1)
-            qrnn.initialize(batch_size)
             X = tf.placeholder(tf.float32, [batch_size, sentence_length, word_size])
             forward_graph = qrnn.forward(X)
 
@@ -33,7 +32,6 @@ class TestQRNNForward(unittest.TestCase):
 
         with tf.Graph().as_default() as q_with_previous:
             qrnn = QRNN(in_size=word_size, size=size, conv_size=2)
-            qrnn.initialize(batch_size)
             X = tf.placeholder(tf.float32, [batch_size, sentence_length, word_size])
             forward_graph = qrnn.forward(X)
 
@@ -51,7 +49,6 @@ class TestQRNNForward(unittest.TestCase):
 
         with tf.Graph().as_default() as q_conv:
             qrnn = QRNN(in_size=word_size, size=size, conv_size=3)
-            qrnn.initialize(batch_size)
             X = tf.placeholder(tf.float32, [batch_size, sentence_length, word_size])
             forward_graph = qrnn.forward(X)
 

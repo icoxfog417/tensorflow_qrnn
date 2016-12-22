@@ -127,7 +127,6 @@ class TestQRNNWork(unittest.TestCase):
         in_size = int(X.get_shape()[2])
 
         qrnn = QRNN(in_size=in_size, size=size, conv_size=conv_size)
-        qrnn.initialize(batch_size)
         hidden = qrnn.forward(X)
 
         with tf.name_scope("QRNN-Classifier"):
