@@ -8,7 +8,7 @@ QRNN implementation for TensorFlow. Implementation refer to below blog.
 
 ## Dependencies
 
-* TensorFlow: 0.12.0rc0
+* TensorFlow: 0.12.0
 * scikit-learn: 0.18.1 (for working check)
 
 ## How to run
