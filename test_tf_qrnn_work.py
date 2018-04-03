@@ -6,9 +6,10 @@ import numpy as np
 from sklearn.datasets import load_digits
 from sklearn.metrics import accuracy_score
 import tensorflow as tf
-from tensorflow.python.ops import rnn, rnn_cell
+from tensorflow.contrib.rnn import LSTMCell
+from tensorflow import nn
 from tf_qrnn import QRNN
-
+import pdb
 
 def measure_time(func):
     @functools.wraps(func)
@@ -66,7 +67,7 @@ class TestQRNNWork(unittest.TestCase):
             summary_dir += "/random"
         
         with tf.name_scope("optimization"):
-            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(pred, y))
+            loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=pred, labels=y))
             optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
 
         with tf.name_scope("evaluation"):
@@ -98,17 +99,16 @@ class TestQRNNWork(unittest.TestCase):
     
     def baseline_forward(self, X, size, n_class):
         shape = X.get_shape()
-        _X = tf.transpose(X, [1, 0, 2])  # batch_size x sentence_length x word_length -> batch_size x sentence_length x word_length
-        _X = tf.reshape(_X, [-1, int(shape[2])])  # (batch_size x sentence_length) x word_length
-        seq = tf.split(0, int(shape[1]), _X)  # sentence_length x (batch_size x word_length)
+        seq = tf.transpose(X, [1, 0, 2]) 
 
         with tf.name_scope("LSTM"):
-            lstm_cell = rnn_cell.BasicLSTMCell(size, forget_bias=1.0)
-            outputs, states = rnn.rnn(lstm_cell, seq, dtype=tf.float32)
+            lstm_cell = LSTMCell(size, forget_bias=1.0)
+            outputs, states = nn.dynamic_rnn(time_major=True, cell=lstm_cell, inputs=seq, dtype=tf.float32)
 
         with tf.name_scope("LSTM-Classifier"):
             W = tf.Variable(tf.random_normal([size, n_class]), name="W")
             b = tf.Variable(tf.random_normal([n_class]), name="b")
+            # pdb.set_trace()
             output = tf.matmul(outputs[-1], W) + b
 
         return output
