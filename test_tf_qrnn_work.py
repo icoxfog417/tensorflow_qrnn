@@ -9,7 +9,6 @@ import tensorflow as tf
 from tensorflow.contrib.rnn import LSTMCell
 from tensorflow import nn
 from tf_qrnn import QRNN
-import pdb
 
 def measure_time(func):
     @functools.wraps(func)
@@ -108,7 +107,6 @@ class TestQRNNWork(unittest.TestCase):
         with tf.name_scope("LSTM-Classifier"):
             W = tf.Variable(tf.random_normal([size, n_class]), name="W")
             b = tf.Variable(tf.random_normal([n_class]), name="b")
-            # pdb.set_trace()
             output = tf.matmul(outputs[-1], W) + b
 
         return output
