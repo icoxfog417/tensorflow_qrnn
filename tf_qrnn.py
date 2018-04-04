@@ -23,8 +23,8 @@ class QRNN():
             f = tf.sigmoid(f)
             z = tf.tanh(z)
             o = tf.sigmoid(o)
-            self.c = tf.mul(f, self.c) + tf.mul(1 - f, z)
-            self.h = tf.mul(o, self.c)  # h is size vector
+            self.c = tf.multiply(f, self.c) + tf.multiply(1 - f, z)
+            self.h = tf.multiply(o, self.c)  # h is size vector
 
         return self.h
 
@@ -71,7 +71,7 @@ class QRNNLinear():
         _weighted = tf.add(_weighted, self.b)
 
         # now, _weighted is batch_size x weight_size
-        f, z, o = tf.split(1, 3, _weighted)  # split to f, z, o. each matrix is batch_size x size
+        f, z, o = tf.split(_weighted, num_or_size_splits=3, axis=1)  # split to f, z, o. each matrix is batch_size x size
         return f, z, o
 
 
@@ -97,7 +97,7 @@ class QRNNWithPrevious():
         _previous = tf.add(_previous, self.b)
         _weighted = tf.add(_current, _previous)
 
-        f, z, o = tf.split(1, 3, _weighted)  # split to f, z, o. each matrix is batch_size x size
+        f, z, o = tf.split(_weighted, num_or_size_splits=3, axis=1)  # split to f, z, o. each matrix is batch_size x size
         self._previous = t
         return f, z, o
 
@@ -116,9 +116,9 @@ class QRNNConvolution():
 
     def conv(self, x):
         # !! x is batch_size x sentence_length x word_length(=channel) !!
-        _weighted = tf.nn.conv1d(x, self.conv_filter, stride=1, padding="SAME", data_format="NHWC")
+        _weighted = tf.nn.conv1d(x, self.conv_filter, stride=1, padding="SAME", data_format="NWC")
 
         # _weighted is batch_size x conved_size x output_channel
         _w = tf.transpose(_weighted, [1, 0, 2])  # conved_size x  batch_size x output_channel
-        _ws = tf.split(2, 3, _w) # make 3(f, z, o) conved_size x  batch_size x size
+        _ws = tf.split(_w, num_or_size_splits=3, axis=2) # make 3(f, z, o) conved_size x  batch_size x size
         return _ws
