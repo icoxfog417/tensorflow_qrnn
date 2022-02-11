@@ -1,5 +1,5 @@
 numpy==1.11.3
-protobuf==3.1.0
+protobuf==3.15.0
 scikit-learn==0.18.1
 scipy==0.18.1
 six==1.10.0
